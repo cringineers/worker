@@ -3,9 +3,8 @@ import io
 import logging
 import clip
 import torch
-import numpy as np
 from PIL import Image
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv, find_dotenv
 
