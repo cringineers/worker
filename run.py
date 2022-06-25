@@ -4,6 +4,7 @@ import clip
 import rawpy
 import pyheif
 import torch
+from zlib import decompress
 from PIL import Image
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -64,7 +65,7 @@ async def predict_image():
 async def features_image():
     try:
         if request.data:
-            buffer = io.BytesIO(request.data)
+            buffer = io.BytesIO(decompress(request.data))
             image = load_image(buffer)
             image = torch.stack([preprocess(image)]).to(device)
             features = model.encode_image(image)
