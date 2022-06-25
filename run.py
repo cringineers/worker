@@ -1,6 +1,8 @@
 import io
 import logging
 import clip
+import rawpy
+import pyheif
 import torch
 from PIL import Image
 from flask import Flask, request, jsonify
@@ -13,6 +15,27 @@ CORS(app)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 torch.set_grad_enabled(False)
+
+
+def load_image(path):
+    # Try to read image using PIL
+    try:
+        return Image.open(path)
+    except Image.UnidentifiedImageError:
+        pass
+
+    # Try to read image using rawpy
+    try:
+        return Image.fromarray(rawpy.imread(path).postprocess())
+    except rawpy.LibRawFileUnsupportedError:
+        pass
+
+    # Try to read image using heif
+    try:
+        heif = pyheif.read_heif(path)
+        return Image.frombytes(mode=heif.mode, size=heif.size, data=heif.data)
+    except ValueError:
+        pass
 
 
 @app.post("/predict_image")
@@ -42,7 +65,7 @@ async def features_image():
     try:
         if request.data:
             buffer = io.BytesIO(request.data)
-            image = Image.open(buffer)
+            image = load_image(buffer)
             image = torch.stack([preprocess(image)]).to(device)
             features = model.encode_image(image)
             features /= features.norm(dim=-1, keepdim=True)
