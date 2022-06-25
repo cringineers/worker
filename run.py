@@ -29,7 +29,7 @@ async def predict_image():
                 tags_spaces = [tag["latent_space"] for tag in tags]
                 tags_spaces = torch.tensor(tags_spaces, dtype=torch.float32, device=device)
                 prediction = (100.0 * image_ls @ tags_spaces.T).argmax(dim=1)
-                result[group_id] = [{"image_id": images[i]["id"], "tag_id": pred.item()} for i, pred in enumerate(prediction)]
+                result[group_id] = [{"image_id": images[i]["id"], "tag_id": tags[pred.item()]["id"]} for i, pred in enumerate(prediction)]
             return jsonify(result), 200
         return jsonify(error="Can`t find image and tag_groups fields"), 400
     except Exception as err:
