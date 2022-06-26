@@ -65,7 +65,7 @@ async def predict_image():
 async def features_image():
     try:
         if request.data:
-            buffer = io.BytesIO(decompress(request.data))
+            buffer = io.BytesIO(request.data)
             image = load_image(buffer)
             image = torch.stack([preprocess(image)]).to(device)
             features = model.encode_image(image)
